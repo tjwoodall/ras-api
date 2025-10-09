@@ -66,7 +66,7 @@ paths:
                 message: Cannot provide a residency status for this pension scheme member.
       deprecated: false
       security:
-        - user-restricted:
+        - User-Restricted:
             - read:ras
 components:
   parameters:
@@ -100,7 +100,7 @@ components:
         example: Bearer bb7fed3fe10dd235a2ccda3d50fb
       required: true
   securitySchemes:
-    user-restricted:
+    User-Restricted:
       type: oauth2
       description: HMRC supports OAuth 2.0 for authenticating [user-restricted](https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/user-restricted-endpoints) API requests using an OAuth 2.0 Bearer Token in the Authorization header.
       flows:
