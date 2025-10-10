@@ -60,7 +60,6 @@ paths:
               schema:
                 allOf:
                 - $ref: '#/components/schemas/errorResponse'
-                - description: The pension scheme member's details do not match with HMRC's records.
               example:
                 code: STATUS_UNAVAILABLE
                 message: Cannot provide a residency status for this pension scheme member.
