@@ -128,7 +128,6 @@ paths:
               schema:
                 allOf:
                   - $ref: '#/components/schemas/errorResponse403'
-                  - description: The pension scheme member's details do not match with HMRC's records.
               examples:
                 unregistered-nino-1:
                   description: Member with an unregistered nino number
