@@ -57,7 +57,7 @@ paths:
                   type: object
                   properties:
                     nino:
-                      pattern: ^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D]$
+                      pattern: ^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D]?$
                       type: string
                       description: The pension scheme member’s National Insurance number.
                       example: BB123456B
@@ -76,11 +76,56 @@ paths:
                       type: string
                       description: The pension scheme member’s date of birth. This cannot be in the future.
                       example: '1975-05-25'
-            example:
-              nino: BB123456B
-              firstName: John
-              lastName: Smith
-              dateOfBirth: '1975-05-25'
+            examples:
+              scotland-curr-year-scotland-next-year:
+                description: Individual with current and next year as Scotland resident.
+                value:
+                  nino: CC123456C
+                  firstName: Joe
+                  lastName: Bloggs
+                  dateOfBirth: '1982-02-17'
+              uk-curr-year-scotland-next-year:
+                description: Individual with current year as rest of the UK and next year as Scotland resident.
+                value:
+                  nino: BB123456B
+                  firstName: John
+                  lastName: Smith
+                  dateOfBirth: '1975-05-25'
+              wales-curr-year-wales-next-year:
+                description: Individual with current and next year as Wales resident.
+                value:
+                  nino: AA246255A
+                  firstName: Jack
+                  lastName: Oscar
+                  dateOfBirth: '1962-07-07'
+              scotland-curr-year-uk-next-year:
+                description: Individual with current year as Scotland and next year as rest of the UK resident.
+                value:
+                  nino: LR325154B
+                  firstName: Jane
+                  lastName: Doe
+                  dateOfBirth: '1969-06-09'
+              uk-curr-year-wales-next-year:
+                description: Individual with current year as rest of the UK and next year as Wales resident.
+                value:
+                  nino: SG325450C
+                  firstName: John
+                  lastName: Johny
+                  dateOfBirth: '1950-10-20'
+              unregistered-nino-1:
+                description: Member with an unregistered nino number
+                value:
+                  nino: CC432567B
+                  firstName: Austin
+                  lastName: Powers
+                  dateOfBirth: '1965-01-01'
+              unregistered-nino-2:
+                description: Member with an unregistered nino number
+                value:
+                  nino: CB432564B
+                  firstName: Jake
+                  lastName: John
+                  dateOfBirth: '1965-02-01'
         required: true
       responses:
         '200':
@@ -90,10 +135,10 @@ paths:
               schema:
                 allOf:
                   - title: Relief at source residency status response
-                    required: &ref_3
+                    required: &ref_1
                       - currentYearResidencyStatus
                     type: object
-                    properties: &ref_4
+                    properties: &ref_2
                       currentYearResidencyStatus:
                         title: UK residency status type
                         enum: &ref_0
@@ -105,9 +150,32 @@ paths:
                         title: UK residency status type
                         enum: *ref_0
                         type: string
-              example:
-                currentYearResidencyStatus: otherUKResident
-                nextYearForecastResidencyStatus: scotResident
+              examples:
+                scotland-curr-year-scotland-next-year:
+                  description: Individual with current and next year as Scotland resident.
+                  value:
+                    currentYearResidencyStatus: scotResident
+                    nextYearForecastResidencyStatus: scotResident
+                uk-curr-year-scotland-next-year:
+                  description: Individual with current year as rest of the UK and next year as Scotland resident.
+                  value:
+                    currentYearResidencyStatus: otherUKResident
+                    nextYearForecastResidencyStatus: scotResident
+                wales-curr-year-wales-next-year:
+                  description: Individual with current and next year as Wales resident.
+                  value:
+                    currentYearResidencyStatus: welshResident
+                    nextYearForecastResidencyStatus: welshResident
+                scotland-curr-year-uk-next-year:
+                  description: Individual with current year as Scotland and next year as rest of the UK resident.
+                  value:
+                    currentYearResidencyStatus: scotResident
+                    nextYearForecastResidencyStatus: otherUKResident
+                uk-curr-year-wales-next-year:
+                  description: Individual with current year as rest of the UK and next year as Wales resident.
+                  value:
+                    currentYearResidencyStatus: otherUKResident
+                    nextYearForecastResidencyStatus: welshResident
         '400':
           description: Bad Request
           content:
@@ -115,16 +183,15 @@ paths:
               schema:
                 allOf:
                   - title: Error response
-                    required: &ref_1
+                    required: &ref_3
                       - code
                       - message
                     type: object
-                    properties: &ref_2
+                    properties: &ref_4
                       code:
                         title: Error code type
                         enum:
                           - BAD_REQUEST
-                          - STATUS_UNAVAILABLE
                         type: string
                       message:
                         type: string
@@ -138,13 +205,30 @@ paths:
               schema:
                 allOf:
                   - title: Error response
-                    required: *ref_1
+                    required: &ref_5
+                      - code
+                      - message
                     type: object
-                    properties: *ref_2
+                    properties: &ref_6
+                      code:
+                        title: Error code type
+                        enum:
+                          - STATUS_UNAVAILABLE
+                        type: string
+                      message:
+                        type: string
                   - description: The pension scheme member's details do not match with HMRC's records.
-              example:
-                code: STATUS_UNAVAILABLE
-                message: Cannot provide a residency status for this pension scheme member.
+              examples:
+                unregistered-nino-1:
+                  description: Member with an unregistered nino number
+                  value:
+                    code: STATUS_UNAVAILABLE
+                    message: Cannot provide a residency status for this pension scheme member.
+                unregistered-nino-2:
+                  description: Member with an unregistered nino number
+                  value:
+                    code: STATUS_UNAVAILABLE
+                    message: Cannot provide a residency status for this pension scheme member.
       deprecated: false
       security:
         - user-restricted:
@@ -164,11 +248,16 @@ components:
   schemas:
     residencyStatusResponse:
       title: Relief at source residency status response
-      required: *ref_3
-      type: object
-      properties: *ref_4
-    errorResponse:
-      title: Error response
       required: *ref_1
       type: object
       properties: *ref_2
+    errorResponse:
+      title: Error response
+      required: *ref_3
+      type: object
+      properties: *ref_4
+    errorResponse403:
+      title: Error response
+      required: *ref_5
+      type: object
+      properties: *ref_6
