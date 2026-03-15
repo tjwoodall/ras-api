@@ -3,10 +3,10 @@ info:
   title: Residency status for relief at source
   version: '2.0'
 servers:
-- url: https://test-api.service.hmrc.gov.uk
-  description: Sandbox
-- url: https://api.service.hmrc.gov.uk
-  description: Production
+  - url: https://test-api.service.hmrc.gov.uk
+    description: Sandbox
+  - url: https://api.service.hmrc.gov.uk
+    description: Production
 paths:
   /individuals/relief-at-source/residency-status:
     post:
@@ -25,12 +25,57 @@ paths:
           application/json:
             schema:
               allOf:
-              - $ref: '#/components/schemas/residencyStatusRequest'
-            example:
-              nino: BB123456B
-              firstName: John
-              lastName: Smith
-              dateOfBirth: 1975-05-25
+                - $ref: '#/components/schemas/residencyStatusRequest'
+            examples:
+              scotland-curr-year-scotland-next-year:
+                description: Individual with current and next year as Scotland resident.
+                value:
+                  nino: CC123456C
+                  firstName: Joe
+                  lastName: Bloggs
+                  dateOfBirth: 1982-02-17
+              uk-curr-year-scotland-next-year:
+                description: Individual with current year as rest of the UK and next year as Scotland resident.
+                value:
+                  nino: BB123456B
+                  firstName: John
+                  lastName: Smith
+                  dateOfBirth: 1975-05-25
+              wales-curr-year-wales-next-year:
+                description: Individual with current and next year as Wales resident.
+                value:
+                  nino: AA246255A
+                  firstName: Jack
+                  lastName: Oscar
+                  dateOfBirth: 1962-07-07
+              scotland-curr-year-uk-next-year:
+                description: Individual with current year as Scotland and next year as rest of the UK resident.
+                value:
+                  nino: LR325154B
+                  firstName: Jane
+                  lastName: Doe
+                  dateOfBirth: 1969-06-09
+              uk-curr-year-wales-next-year:
+                description: Individual with current year as rest of the UK and next year as Wales resident.
+                value:
+                  nino: SG325450C
+                  firstName: John
+                  lastName: Johny
+                  dateOfBirth: 1950-10-20
+              unregistered-nino-1:
+                description: Member with an unregistered nino number
+                value:
+                  nino: CC432567B
+                  firstName: Austin
+                  lastName: Powers
+                  dateOfBirth: 1965-01-01
+              unregistered-nino-2:
+                description: Member with an unregistered nino number
+                value:
+                  nino: CB432564B
+                  firstName: Jake
+                  lastName: John
+                  dateOfBirth: 1965-02-01
         required: true
       responses:
         '200':
@@ -39,17 +84,40 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/residencyStatusResponse'
-              example:
-                currentYearResidencyStatus: otherUKResident
-                nextYearForecastResidencyStatus: scotResident
+                  - $ref: '#/components/schemas/residencyStatusResponse'
+              examples:
+                scotland-curr-year-scotland-next-year:
+                  description: Individual with current and next year as Scotland resident.
+                  value:
+                    currentYearResidencyStatus: scotResident
+                    nextYearForecastResidencyStatus: scotResident
+                uk-curr-year-scotland-next-year:
+                  description: Individual with current year as rest of the UK and next year as Scotland resident.
+                  value:
+                    currentYearResidencyStatus: otherUKResident
+                    nextYearForecastResidencyStatus: scotResident
+                wales-curr-year-wales-next-year:
+                  description: Individual with current and next year as Wales resident.
+                  value:
+                    currentYearResidencyStatus: welshResident
+                    nextYearForecastResidencyStatus: welshResident
+                scotland-curr-year-uk-next-year:
+                  description: Individual with current year as Scotland and next year as rest of the UK resident.
+                  value:
+                    currentYearResidencyStatus: scotResident
+                    nextYearForecastResidencyStatus: otherUKResident
+                uk-curr-year-wales-next-year:
+                  description: Individual with current year as rest of the UK and next year as Wales resident.
+                  value:
+                    currentYearResidencyStatus: otherUKResident
+                    nextYearForecastResidencyStatus: welshResident
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/errorResponse'
+                  - $ref: '#/components/schemas/errorResponse'
               example:
                 code: BAD_REQUEST
                 message: Bad Request
@@ -59,11 +127,19 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/errorResponse'
-                - description: The pension scheme member's details do not match with HMRC's records.
-              example:
-                code: STATUS_UNAVAILABLE
-                message: Cannot provide a residency status for this pension scheme member.
+                  - $ref: '#/components/schemas/errorResponse403'
+                  - description: The pension scheme member's details do not match with HMRC's records.
+              examples:
+                unregistered-nino-1:
+                  description: Member with an unregistered nino number
+                  value:
+                    code: STATUS_UNAVAILABLE
+                    message: Cannot provide a residency status for this pension scheme member.
+                unregistered-nino-2:
+                  description: Member with an unregistered nino number
+                  value:
+                    code: STATUS_UNAVAILABLE
+                    message: Cannot provide a residency status for this pension scheme member.
       deprecated: false
       security:
         - user-restricted:
@@ -114,14 +190,14 @@ components:
     residencyStatusRequest:
       title: Residency status request
       required:
-      - nino
-      - firstName
-      - lastName
-      - dateOfBirth
+        - nino
+        - firstName
+        - lastName
+        - dateOfBirth
       type: object
       properties:
         nino:
-          pattern: ^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D]$
+          pattern: ^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D]?$
           type: string
           description: The pension scheme member’s National Insurance number.
           example: BB123456B
@@ -143,7 +219,7 @@ components:
     residencyStatusResponse:
       title: Relief at source residency status response
       required:
-      - currentYearResidencyStatus
+        - currentYearResidencyStatus
       type: object
       properties:
         currentYearResidencyStatus:
@@ -153,24 +229,39 @@ components:
     UKResidencyStatusType:
       title: UK residency status type
       enum:
-      - scotResident
-      - welshResident
-      - otherUKResident
+        - scotResident
+        - welshResident
+        - otherUKResident
       type: string
     error-codeType:
       title: Error code type
       enum:
-      - BAD_REQUEST
-      - STATUS_UNAVAILABLE
+        - BAD_REQUEST
+      type: string
+    error-codeType-403:
+      title: Error code type
+      enum:
+        - STATUS_UNAVAILABLE
       type: string
     errorResponse:
       title: Error response
       required:
-      - code
-      - message
+        - code
+        - message
       type: object
       properties:
         code:
           $ref: '#/components/schemas/error-codeType'
+        message:
+          type: string
+    errorResponse403:
+      title: Error response
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/error-codeType-403'
         message:
           type: string
